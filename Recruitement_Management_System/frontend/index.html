@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Management System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="logo-text">
+                <h2>RMS</h2>
+                <span>Recruitment</span>
+            </div>
+        </div>
+        <ul class="nav-menu">
+            <li class="active"><a href="#" onclick="showSection('dashboard')"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="#" onclick="showSection('jobs')"><i class="fas fa-briefcase"></i> Jobs</a></li>
+            <li><a href="#" onclick="showSection('candidates')"><i class="fas fa-users"></i> Candidates</a></li>
+            <li><a href="#" onclick="showSection('applications')"><i class="fas fa-file-alt"></i> Applications</a></li>
+            <li><a href="#" onclick="showSection('interviews')"><i class="fas fa-calendar-check"></i> Interviews</a></li>
+            <li><a href="#" onclick="showSection('ai-tools')"><i class="fas fa-robot"></i> AI Tools</a></li>
+            <li style="margin-top: auto;"><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h1>Dashboard Overview</h1>
+                <div class="date-display" id="currentDate"></div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-briefcase" style="color: var(--primary)"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalJobs">0</h3>
+                        <p>Total Jobs</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon secondary">
+                        <i class="fas fa-users" style="color: var(--secondary)"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalCandidates">0</h3>
+                        <p>Total Candidates</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-file-alt" style="color: var(--warning)"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalApplications">0</h3>
+                        <p>Applications</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-calendar-check" style="color: var(--success)"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalInterviews">0</h3>
+                        <p>Interviews Scheduled</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="dashboard-card" style="grid-column: span 2;">
+                    <h3><i class="fas fa-chart-pie"></i> Recruitment Analytics</h3>
+                    <div class="chart-container">
+                        <canvas id="recruitmentChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Recent Jobs</h3>
+                    <div id="recentJobs" class="table-container">
+                        <p class="loading">Loading...</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Recent Applications</h3>
+                    <div id="recentApplications" class="table-container">
+                        <p class="loading">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use existing sections for Jobs, Candidates, etc. -->
+        <section id="jobs" class="content-section">
+            <div class="section-header">
+                <h1>Job Listings</h1>
+                <button class="btn btn-primary" onclick="openModal('addJobModal')">
+                    <i class="fas fa-plus"></i> Add New Job
+                </button>
+            </div>
+
+            <div class="filters">
+                <input type="text" id="jobSearch" placeholder="Search jobs..." onkeyup="filterJobs()">
+                <select id="jobStatusFilter" onchange="filterJobs()">
+                    <option value="">All Status</option>
+                    <option value="Open">Open</option>
+                    <option value="Closed">Closed</option>
+                    <option value="On-Hold">On-Hold</option>
+                </select>
+            </div>
+
+            <div id="jobsList" class="table-container"></div>
+        </section>
+
+        <section id="candidates" class="content-section">
+            <div class="section-header">
+                <h1>Candidates</h1>
+                <button class="btn btn-primary" onclick="openModal('addCandidateModal')">
+                    <i class="fas fa-plus"></i> Register Candidate
+                </button>
+            </div>
+
+            <div class="filters">
+                <input type="text" id="candidateSearch" placeholder="Search candidates..." onkeyup="filterCandidates()">
+                <input type="number" id="minExperience" placeholder="Min Experience" onchange="filterCandidates()">
+            </div>
+
+            <div id="candidatesList" class="table-container"></div>
+        </section>
+
+        <section id="applications" class="content-section">
+            <div class="section-header">
+                <h1>Job Applications</h1>
+                <button class="btn btn-primary" onclick="openModal('addApplicationModal')">
+                    <i class="fas fa-plus"></i> New Application
+                </button>
+            </div>
+
+            <div class="filters">
+                <select id="appStatusFilter" onchange="filterApplications()">
+                    <option value="">All Status</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Shortlisted">Shortlisted</option>
+                    <option value="Interview Scheduled">Interview Scheduled</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div id="applicationsList" class="table-container"></div>
+        </section>
+
+        <section id="interviews" class="content-section">
+            <div class="section-header">
+                <h1>Interview Schedule</h1>
+                <button class="btn btn-primary" onclick="openModal('scheduleInterviewModal')">
+                    <i class="fas fa-plus"></i> Schedule Interview
+                </button>
+            </div>
+
+            <div class="filters">
+                <select id="interviewStatusFilter" onchange="filterInterviews()">
+                    <option value="">All Status</option>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+
+            <div id="interviewsList" class="table-container"></div>
+        </section>
+
+        <!-- AI Tools Section -->
+        <section id="ai-tools" class="content-section">
+            <div class="section-header">
+                <h1>AI Assistant <span
+                        style="font-size: 0.6em; color: var(--secondary); background: rgba(236, 72, 153, 0.1); padding: 5px 10px; border-radius: 10px;">BETA</span>
+                </h1>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-magic"></i> Generate Job Description</h3>
+                    <p class="mb-1">Generate a professional job description instantly.</p>
+                    <form onsubmit="generateJD(event)">
+                        <div class="form-group">
+                            <label>Job Title</label>
+                            <input type="text" id="aiJobTitle" placeholder="e.g. Senior React Developer" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Company Name</label>
+                            <input type="text" id="aiCompany" placeholder="e.g. TechCorp" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Generate</button>
+                    </form>
+                    <div id="jdResult" class="mt-1"
+                        style="white-space: pre-wrap; background: #f8fafc; padding: 1rem; border-radius: 10px; display: none;">
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-brain"></i> Interview Questions</h3>
+                    <p class="mb-1">Get tailored interview questions for any role.</p>
+                    <form onsubmit="generateQuestions(event)">
+                        <div class="form-group">
+                            <label>Role</label>
+                            <input type="text" id="aiQuestionRole" placeholder="e.g. Data Scientist" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Get Questions</button>
+                    </form>
+                    <div id="questionsResult" class="mt-1"
+                        style="background: #f8fafc; padding: 1rem; border-radius: 10px; display: none;"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modals (Same as before) -->
+    <div id="addJobModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addJobModal')">&times;</span>
+            <h2>Add New Job</h2>
+            <form id="addJobForm" onsubmit="addJob(event)">
+                <div class="form-group">
+                    <label>Job Title *</label>
+                    <input type="text" name="job_title" required>
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <select name="company_id" required>
+                        <option value="">Select Company</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" name="department">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Experience Required (years)</label>
+                        <input type="number" name="experience_required" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Vacancies</label>
+                        <input type="number" name="vacancies" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min Salary</label>
+                        <input type="number" name="salary_min" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Salary</label>
+                        <input type="number" name="salary_max" step="1000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location">
+                </div>
+                <div class="form-group">
+                    <label>Job Description</label>
+                    <textarea name="job_description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Skills Required</label>
+                    <input type="text" name="skills_required" placeholder="e.g., Java, Python, SQL">
+                </div>
+                <div class="form-group">
+                    <label>Deadline</label>
+                    <input type="date" name="deadline">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add Job</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addJobModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addCandidateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addCandidateModal')">&times;</span>
+            <h2>Register Candidate</h2>
+            <form id="addCandidateForm" onsubmit="addCandidate(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name *</label>
+                        <input type="text" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name *</label>
+                        <input type="text" name="last_name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" name="phone">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="date_of_birth">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender">
+                            <option value="">Select</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Highest Qualification</label>
+                    <input type="text" name="highest_qualification">
+                </div>
+                <div class="form-group">
+                    <label>Total Experience (years)</label>
+                    <input type="number" name="total_experience" step="0.1" min="0" value="0">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Current Company</label>
+                        <input type="text" name="current_company">
+                    </div>
+                    <div class="form-group">
+                        <label>Current Designation</label>
+                        <input type="text" name="current_designation">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" name="city">
+                </div>
+                <div class="form-group">
+                    <label>Skills</label>
+                    <input type="text" name="skills" placeholder="e.g., Java, Python, SQL">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('addCandidateModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addApplicationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addApplicationModal')">&times;</span>
+            <h2>Submit Application</h2>
+            <form id="addApplicationForm" onsubmit="addApplication(event)">
+                <div class="form-group">
+                    <label>Select Job *</label>
+                    <select name="job_id" required>
+                        <option value="">Select Job</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Select Candidate *</label>
+                    <select name="candidate_id" required>
+                        <option value="">Select Candidate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cover Letter</label>
+                    <textarea name="cover_letter" rows="6" placeholder="Enter your cover letter here..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('addApplicationModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="scheduleInterviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('scheduleInterviewModal')">&times;</span>
+            <h2>Schedule Interview</h2>
+            <form id="scheduleInterviewForm" onsubmit="scheduleInterview(event)">
+                <div class="form-group">
+                    <label>Select Application *</label>
+                    <select name="application_id" required>
+                        <option value="">Select Application</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Interview Round *</label>
+                    <select name="interview_round" required>
+                        <option value="">Select Round</option>
+                        <option value="Screening">Screening</option>
+                        <option value="Technical">Technical</option>
+                        <option value="HR">HR</option>
+                        <option value="Managerial">Managerial</option>
+                        <option value="Final">Final</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Interview Date *</label>
+                        <input type="date" name="interview_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Interview Time *</label>
+                        <input type="time" name="interview_time" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Interview Mode *</label>
+                    <select name="interview_mode" required>
+                        <option value="">Select Mode</option>
+                        <option value="Online">Online</option>
+                        <option value="In-Person">In-Person</option>
+                        <option value="Phone">Phone</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Interviewer Name</label>
+                        <input type="text" name="interviewer_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Interviewer Email</label>
+                        <input type="email" name="interviewer_email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location / Meeting Link</label>
+                    <input type="text" name="location_or_link" placeholder="Office address or meeting link">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Schedule</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('scheduleInterviewModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
